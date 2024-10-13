@@ -1,66 +1,40 @@
-import express from "express";
-import { postControllers } from "./post.controller";
-import { multerUpload } from "../../config/multer.config";
-import { parseBody } from "../../middlewares/bodyParser";
-import auth from "../../middlewares/auth";
-import { USER_ROLE } from "../user/user.constant";
+import { Router } from 'express'
+import { PostController } from './post.controller'
+import auth from '../../middlewares/auth'
+import { USER_ROLE } from '../user/user.utils'
 
-const router = express.Router();
 
-// post routes
+const router = Router()
 
-router.get("/all-posts", postControllers.getAllPosts);
-
-router.get("/single-post/:id", postControllers.getSinglePost);
-
-// router.post(
-//   "/create-post",
-//   multerUpload.fields([{ name: "image" }]),
-//   parseBody,
-//   postControllers.createPost
-// );
+router.post('/create', PostController.createPost)
 
 router.post(
-  "/create-post",
-  multerUpload.single("image"),
-  parseBody,
-  postControllers.createPost
-);
-
-// router.put(
-//   "/update-post/:id",
-//   auth(USER_ROLE.admin, USER_ROLE.user),
-//   postControllers.updatePost
-// );
-
-router.put(
-  "/update-post/:id",
-  multerUpload.single("image"),
-  parseBody,
-  postControllers.updatePost
-);
-
-router.delete(
-  "/delete-post/:id",
+  '/upvote/:id',
   auth(USER_ROLE.admin, USER_ROLE.user),
-  postControllers.deletePost
-);
+  PostController.upVotes,
+)
 
-// upvote and downvote
-router.post("/upvote/:id", postControllers.upVotePost);
-router.post("/downvote/:id", postControllers.downVotePost);
+router.post(
+  '/downvote/:id',
+  auth(USER_ROLE.admin, USER_ROLE.user),
+  PostController.downVotes,
+)
 
-// popular post get
-router.get("/popular", postControllers.getPopularPosts);
+router.get('/:id', PostController.getUserPost)
 
-// post by authors
-router.get("/posts-by-author/:id", postControllers.getPostsByAuthor);
+router.get('/get-all-posts/tableData', PostController.getAllPostsForTable)
 
-// active & inactive
+// get all post
 router.get(
-  "/all-active-inactive-posts",
-  auth(USER_ROLE.admin),
-  postControllers.getAllAcInacPosts
-);
+  '/',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  PostController.getAllPost,
+)
+// get post by id
+router.get('/getPost/:postId', PostController.getPostById)
 
-export const PostRoutes = router;
+router.put('/update/:id', PostController.updatePost)
+
+router.delete('/:id', PostController.deletePost)
+
+export const PostRoute = router
