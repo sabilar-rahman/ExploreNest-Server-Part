@@ -1,278 +1,119 @@
-import httpStatus from "http-status";
 
-import { TPost } from "./post.interface";
-// import { TImageFiles } from "../../interface/image.interface";
-import { postServices } from "./post.service";
-import catchAsync from "../utils/catchAsync";
-import sendResponse from "../utils/sendResponse";
-import Post from "./post.model";
-import { getUserInfoFromToken } from "../utils/getUserInfoFromToken";
-import { TImageFile } from "../../interface/image.interface";
-
-// const createPost = catchAsync(async (req, res) => {
-//   const postInfo = req.body;
-//   const files = req.files as TImageFiles;
-//   const postImages = files?.image;
-
-//   const postData: TPost = {
-//     ...postInfo,
-//     image: postImages.map((image) => image.path),
-//   };
-
-//   const result = await postServices.createPostIntoDB(postData);
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Post created successfully",
-//     data: result,
-//   });
-// });
-
-
-
-
-
-
-// const getAllPosts = catchAsync(async (req, res) => {
-//   const result = await postServices.getAllPostsFromDB();
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Post retrieved successfully",
-//     data: result,
-//   });
-// });
-
+import catchAsync from '../utils/catchAsync'
+import sendResponse from '../utils/sendResponse'
+import { PostService } from './post.service'
 
 const createPost = catchAsync(async (req, res) => {
-    const postInfo = req.body
-    
-    const file = req.file as TImageFile
-    const imagePath = file?.path
-    const payload = {
-      ...postInfo,
-      
-      image: imagePath,
-    }
-  
-    
-    const result = await postServices.createPostIntoDB(payload)
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Post created successfully',
-      data: result,
-    })
-  })
-
-const getAllPosts = catchAsync(async (req, res) => {
-    
-    const query = req.query
-    const result = await postServices.getAllPostsFromDB(query)
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Posts retrieved successfully',
-      data: result,
-    })
-  })
-  const getPostsByAuthor = catchAsync(async (req, res) => {
-    const { id } = req.params
-    const result = await postServices.getPostsByAuthorFromDB(id)
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Posts retrieved successfully',
-      data: result,
-    })
-  })
-
-
-
-
-
-
-
-
-
-
-const getSinglePost = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await postServices.getSinglePostFromDB(id);
-
+  const result = await PostService.createPostIntoDB(req.body)
   sendResponse(res, {
-    statusCode: httpStatus.OK,
     success: true,
-    message: "Post retrieved successfully",
+    message: 'post has been created successfully!',
+    statusCode: 200,
     data: result,
-  });
-});
+  })
+})
 
-// const updatePost = catchAsync(async (req, res) => {
-//   const { id } = req.params;
-//   const postInfo = req.body;
+const getUserPost = catchAsync(async (req, res) => {
+  const { id } = req.params
+  const result = await PostService.getUserSinglePost(id)
+  sendResponse(res, {
+    success: true,
+    message: 'post has been retrieved successfully!',
+    statusCode: 200,
+    data: result,
+  })
+})
 
-//   const files = req.files as TImageFiles;
-//   const postImages = files?.image;
+const getAllPost = catchAsync(async (req, res) => {
+  const user = req.user
+  const query = req.query
+  const result = await PostService.getAllPost(query, user)
+  sendResponse(res, {
+    success: true,
+    message: 'posts has been retrieved successfully!',
+    statusCode: 200,
+    data: result,
+  })
+})
 
-//   const payload: Partial<TPost> = {
-//     ...postInfo,
-//     ...(postImages ? { image: postImages } : {}),
-//   };
+const getAllPostsForTable = catchAsync(async (req, res) => {
+  const result = await PostService.getAllPostsForTable()
+  sendResponse(res, {
+    success: true,
+    message: 'posts has been retrieved successfully!',
+    statusCode: 200,
+    data: result,
+  })
+})
 
-//   const result = await postServices.updatePostIntoDB(id, payload);
+// get post by id
+const getPostById = catchAsync(async (req, res) => {
+  const postId = req.params.postId
+  const result = await PostService.getPostById(postId)
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'Post retrieved successfully!',
+    data: result,
+  })
+})
 
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Post updated successfully",
-//     data: result,
-//   });
-// });
+const upVotes = catchAsync(async (req, res) => {
+  const userId = req.user._id
+  const postId = req.params.id
+  const result = await PostService.upVotes(userId, postId)
+  sendResponse(res, {
+    success: true,
+    message: 'You have made a up vote!',
+    statusCode: 200,
+    data: result,
+  })
+})
 
+const downVotes = catchAsync(async (req, res) => {
+  const userId = req.user._id
+  const postId = req.params.id
+  const result = await PostService.downVotes(userId, postId)
+  sendResponse(res, {
+    success: true,
+    message: 'You have made a down vote!',
+    statusCode: 200,
+    data: result,
+  })
+})
 
-
-
-
+//update post
 const updatePost = catchAsync(async (req, res) => {
-    const { id } = req.params
-    const postInfo = req.body
-  
-    const file = req.file as TImageFile
-    const imagePath = file?.path
-  
-    const payload: Partial<TPost> = {
-      ...postInfo,
-      ...(imagePath ? { image: imagePath } : {}),
-    }
-  
-    const result = await postServices.updatePostIntoDB(id, payload)
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Post updated successfully',
-      data: result,
-    })
-  })
-const deletePost = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await Post.findByIdAndDelete(id);
+  const { id } = req.params
+  const result = await PostService.updatePostIntoDB(id, req.body)
   sendResponse(res, {
-    statusCode: httpStatus.OK,
+    statusCode: 200,
     success: true,
-    message: "Post deleted successfully",
+    message: 'post updated successfully',
     data: result,
-  });
-});
-
-
-
-
-
-
-
-// upvote and downvote
-
-const upVotePost = catchAsync(async (req, res) => {
-    const { id } = req.params
-    const token = req.headers.authorization
-    const { id: userId } = getUserInfoFromToken(token as string)
-    const result = await postServices.upVotePostIntoDB(id, userId)
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Voted done successfully',
-      data: result,
-    })
   })
-  const downVotePost = catchAsync(async (req, res) => {
-    const { id } = req.params
-    const token = req.headers.authorization
-    const { id: userId } = getUserInfoFromToken(token as string)
-    const result = await postServices.downVotePostIntoDB(id, userId)
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Vote removed successfully',
-      data: result,
-    })
+})
+
+//delete post
+const deletePost = catchAsync(async (req, res) => {
+  const { id } = req.params
+  const result = await PostService.deletePostFromDB(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'post deleted successfully',
+    data: result,
   })
+})
 
-
-
-
-
-
-  const getPopularPosts = catchAsync(async (req, res) => {
-    const result = await Post.find()
-      .sort({ upVotes: -1 })
-      .limit(5)
-      .populate('author', '_id name image')
-      .select({
-        image: 0,
-        downVotes: 0,
-        commentsCount: 0,
-        category: 0,
-        comments: 0,
-      })
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Top posts retrieved successfully',
-      data: result,
-    })
-  })
-
-
-
-
-
-
-
-//   active and inactive
-
-const getAllAcInacPosts = catchAsync(async (req, res) => {
-    const result = await Post.find()
-  
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Posts retrieved successfully',
-      data: result,
-    })
-  })
-
-
-
-export const postControllers = {
+export const PostController = {
   createPost,
-  getAllPosts,
-  getSinglePost,
+  getUserPost,
+  getAllPost,
+  upVotes,
+  downVotes,
+  getPostById,
+  getAllPostsForTable,
   updatePost,
   deletePost,
-
-
-
-  upVotePost,
-  downVotePost,
-
-
-  getPopularPosts,
-
-  getPostsByAuthor,
-
-
-
-
-  getAllAcInacPosts
-
-
-
-};
+}

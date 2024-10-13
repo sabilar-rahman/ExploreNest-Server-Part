@@ -1,226 +1,182 @@
-import { SortOrder, Types } from "mongoose";
-import { TPost } from "./post.interface";
-import Post from "./post.model";
-import { PostQueryParams } from "./post.utils";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status'
 
+import { TPost } from './post.interface'
+import { Post } from './post.model'
+import QueryBuilder from '../../builder/QueryBuilder'
+import { User } from '../user/user.model'
+import { searchableFields } from '../utils/searchFields'
+import AppError from '../../errors/AppError'
+
+
+
+// create post
 const createPostIntoDB = async (payload: TPost) => {
-  const result = await Post.create(payload);
-  return result;
-};
-// const getAllPostsFromDB = async () => {
-//   const result = await Post.find()
-//     .populate("author", "_id name email image")
-//     .populate({
-//       path: "comments.commenter",
-//       select: "_id name email image",
-//     });
-//   return result;
-// };
+  const result = (
+    await (await Post.create(payload)).populate('author')
+  ).populate('comments')
+  return result
+}
 
-// const getAllPostsFromDB = async () => {
-//   const result = await Post.find()
-//     .populate("author", "_id name email image")
-//     .select({ comments: 0 });
-//   return result;
-// };
+// get specific user post
+const getUserSinglePost = async (id: string) => {
+  const result = await Post.find({ author: id })
+    .populate('author')
+    .sort({ createdAt: -1 })
+  return result
+}
 
-const getAllPostsFromDB = async (query: PostQueryParams) => {
-  const { searchTerm, sort, category, tag } = query;
+// get all post
+const getAllPost = async (query: Record<string, unknown>, user: any) => {
+  const findUser = await User.findOne({ email: user?.email })
+  const userVerified = findUser?.verified
+  // Initialize the query
+  let postQuery: any = Post.find()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filter: any = {
-
-    isActive: { $ne: false },
-  };
-
-
-
-  // Search by title or content
-  if (searchTerm) {
-    filter.$or = [
-      { title: { $regex: searchTerm, $options: "i" } },
-      { content: { $regex: searchTerm, $options: "i" } },
-    ];
+  // If the user is not verified, filter out premium posts
+  if (!userVerified) {
+    postQuery = postQuery.where({ premium: false })
   }
+  const postQueryBuilder = new QueryBuilder(Post.find(), query)
+    .search(searchableFields) // Specify the searchable fields
+    .filter()
+    .sort()
+    .paginate()
+    .fields()
 
-  // Filter by category
-  if (category) {
-    filter.category = category;
+  const result = await postQueryBuilder.modelQuery
+    .populate('author')
+    .populate('comments')
+    .exec()
+
+  // Get total post count and pagination details
+  const { total, totalPage, page, limit } = await postQueryBuilder.countTotal()
+  return {
+    posts: result,
+    totalPages: totalPage,
+    currentPage: page,
+    totalPosts: total,
+    limit,
   }
+}
 
-  // Filter by tag
-  if (tag) {
-    filter.tags = tag;
-  }
+//get all posts
+const getAllPostsForTable = async () => {
+  const result = await Post.find({}).populate('author')
+  return result
+}
 
-  // Declare sortOption as a dynamic object with SortOrder values
-  let sortOption: Record<string, SortOrder> = { createdAt: -1 };
+// get post by
+const getPostById = async (postId: string) => {
+  const result = await Post.findById({ _id: postId }).populate('author')
+  return result
+}
 
-  // Sort by most votes (i.e., upVotes array length)
-  if (sort === "vote") {
-    sortOption = { upVotes: -1 };
-  }
-
-  const result = await Post.find(filter)
-    .populate("author", "_id name email image followers")
-    .sort(sortOption)
-    .select({ comments: 0 });
-
-  return result;
-};
-
-const getSinglePostFromDB = async (id: string) => {
-  const post = await Post.findById(id)
-    .populate("author", "_id name email image")
-    .populate({
-      path: "comments.commenter",
-      select: "_id name email image",
-    });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const upVotes = async (userId: any, postId: string) => {
+  const post = await Post.findById(postId)
   if (!post) {
-    throw new Error("Post not found");
+    throw new AppError(httpStatus.NOT_FOUND, 'Post not found!')
   }
-  return post;
-};
 
+  // Check if user has already voted
+  const existingVote = post.voters.find(
+    voter => String(voter.user) === String(userId),
+  )
+
+  if (existingVote) {
+    if (existingVote.vote === 'upvote') {
+      // User already upvoted, so remove the upvote
+      post.upVotes -= 1
+      post.voters = post.voters.filter(
+        voter => String(voter.user) !== String(userId),
+      )
+    } else if (existingVote.vote === 'downvote') {
+      // User had downvoted, so switch to upvote
+      post.downVotes -= 1
+      post.upVotes += 1
+      existingVote.vote = 'upvote'
+    }
+  } else {
+    // User has not voted, so add an upvote
+    post.upVotes += 1
+    post.voters.push({ user: userId, vote: 'upvote' })
+  }
+
+  const result = await post.save()
+  return result
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const downVotes = async (userId: any, postId: string) => {
+  const post = await Post.findById(postId)
+
+  if (!post) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Post not found!')
+  }
+  // Check if user has already voted
+  const existingVote = post.voters.find(
+    voter => String(voter.user) === String(userId),
+  )
+
+  if (existingVote) {
+    if (existingVote.vote === 'downvote') {
+      // User already downvoted, so remove the downvote
+      post.downVotes -= 1
+      post.voters = post.voters.filter(
+        voter => String(voter.user) !== String(userId),
+      )
+    } else if (existingVote.vote === 'upvote') {
+      // User had upvoted, so switch to downvote
+      post.upVotes -= 1
+      post.downVotes += 1
+      existingVote.vote = 'downvote'
+    }
+  } else {
+    // User has not voted, so add a downvote
+    post.downVotes += 1
+    post.voters.push({ user: userId, vote: 'downvote' })
+  }
+
+  const result = await post.save()
+  return result
+}
+
+//update service
 const updatePostIntoDB = async (id: string, payload: Partial<TPost>) => {
+  const service = await Post.findById(id)
+  //check isService exists
+  if (!service) {
+    throw new AppError(404, 'Service not found!')
+  }
+
   const result = await Post.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
-  });
-  return result;
-};
+  })
+  return result
+}
 
-// const upVotePostIntoDB = async (id: string, userId: string) => {
-//   const postData = await Post.findById(id);
-//   if (!postData) {
-//     throw new Error("Post not available!");
-//   }
-//   const userObjectId = new Types.ObjectId(userId);
-//   // const postObjectId = new Types.ObjectId(id)
-//   const isVoted = postData.upVotes.includes(userObjectId);
-//   if (isVoted) {
-//     //   const result = await Post.findByIdAndUpdate(postObjectId, {
-//     //     $pull: { upVotes: userId },
-
-//     const result = await Post.findByIdAndUpdate(id, {
-//       $pull: { upVotes: userId },
-//     });
-//     return result;
-//   } else {
-//     //   const result = await Post.findByIdAndUpdate(userObjectId, {
-//     //     $push: { upVotes: userId },
-//     const result = await Post.findByIdAndUpdate(id, {
-//       $push: { upVotes: userId },
-//     });
-//     return result;
-//   }
-// };
-
-const upVotePostIntoDB = async (id: string, userId: string) => {
-  const postData = await Post.findById(id);
-  if (!postData) {
-    throw new Error("Post not available!");
+//delete service
+const deletePostFromDB = async (id: string) => {
+  const service = await Post.findById(id)
+  //check isService exists
+  if (!service) {
+    throw new AppError(404, 'Service not found!')
   }
-  const userObjectId = new Types.ObjectId(userId);
-  const isDownVoted = postData.downVotes.includes(userObjectId);
-  if (isDownVoted) {
-    await Post.findByIdAndUpdate(id, {
-      $pull: { downVotes: userId },
-    });
-  }
-  const isVoted = postData.upVotes.includes(userObjectId);
-  if (isVoted) {
-    const result = await Post.findByIdAndUpdate(id, {
-      $pull: { upVotes: userId },
-    });
-    return result;
-  } else {
-    const result = await Post.findByIdAndUpdate(id, {
-      $push: { upVotes: userId },
-    });
-    return result;
-  }
-};
+  const result = await Post.findByIdAndDelete(id)
+  return result
+}
 
-// const downVotePostIntoDB = async (id: string, userId: string) => {
-//   const postData = await Post.findById(id);
-//   if (!postData) {
-//     throw new Error("Post not available!");
-//   }
-//   const userObjectId = new Types.ObjectId(userId);
-//   //   const postObjectId = new Types.ObjectId(id);
-//   const isVoted = postData.upVotes.includes(userObjectId);
-//   if (isVoted) {
-//     // const result = await Post.findByIdAndUpdate(postObjectId, {
-//     //   $pull: { downVotes: userId },
-//     // });
-//     const result = await Post.findByIdAndUpdate(id, {
-//       $pull: { downVotes: userId },
-//     });
-
-//     return result;
-//   } else {
-//     // const result = await Post.findByIdAndUpdate(userObjectId, {
-//     //   $push: { downVotes: userId },
-//     // });
-
-//     const result = await Post.findByIdAndUpdate(id, {
-//       $push: { downVotes: userId },
-//     });
-
-//     return result;
-//   }
-// };
-
-const downVotePostIntoDB = async (id: string, userId: string) => {
-  const postData = await Post.findById(id);
-  if (!postData) {
-    throw new Error("Post not available!");
-  }
-  const userObjectId = new Types.ObjectId(userId);
-
-  const isUpVoted = postData.upVotes.includes(userObjectId);
-  if (isUpVoted) {
-    await Post.findByIdAndUpdate(id, {
-      $pull: { upVotes: userId },
-    });
-  }
-  const isVoted = postData.downVotes.includes(userObjectId);
-  if (isVoted) {
-    const result = await Post.findByIdAndUpdate(id, {
-      $pull: { downVotes: userId },
-    });
-    return result;
-  } else {
-    const result = await Post.findByIdAndUpdate(id, {
-      $push: { downVotes: userId },
-    });
-    return result;
-  }
-};
-
-// const getPostsByAuthorFromDB = async (id: string) => {
-//     const result = await Post.find({ author: id }).select({ comments: 0 })
-//     return result
-//   }
-
-const getPostsByAuthorFromDB = async (id: string) => {
-  const result = await Post.find({ author: id })
-    .select({ comments: 0 })
-    .populate("author", "_id name image");
-  return result;
-};
-
-export const postServices = {
+export const PostService = {
   createPostIntoDB,
-  getAllPostsFromDB,
-
-  getSinglePostFromDB,
-
+  getUserSinglePost,
+  getAllPost,
+  upVotes,
+  downVotes,
+  getPostById,
+  getAllPostsForTable,
   updatePostIntoDB,
-
-  upVotePostIntoDB,
-  downVotePostIntoDB,
-
-  getPostsByAuthorFromDB,
-};
+  deletePostFromDB,
+}
