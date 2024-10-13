@@ -28,7 +28,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     lastLogin: { type: Date },
     role: {
       type: String,
-      enum: ['admin', 'user', 'driver'],
+      enum: ['admin', 'user'],
       default: 'user',
     },
     img: { type: String },
