@@ -8,15 +8,15 @@ export const sendEmail = async (to: string, html: string) => {
     port: 587,
     secure: config.NODE_ENV === 'development', // true for port 465, false for other ports
     auth: {
-      user: '',
-      pass: '',
+      user: 'sabilar15-3609@diu.edu.bd',
+      pass: 'rwcw ewph spdo gigc',
     },
   })
 
   const info = await transporter.sendMail({
-    from: 'ahmedhimel000@gmail.com',
+    from: 'sabilar15-3609@diu.edu.bd',
     to,
-    subject: 'Reset your password within 10 minutes', // Subject line
+    subject: 'Reset your password this link will expire in 10 minutes', // Subject line
     text: '', // plain text body
     html,
   })
