@@ -1,9 +1,9 @@
 import { Types } from 'mongoose'
 
 export type TComment = {
-  postId: Types.ObjectId;
-  userId: Types.ObjectId;
-  feedback: string;
+  content: string
+  author: Types.ObjectId
+  postId: Types.ObjectId
 }
 
 

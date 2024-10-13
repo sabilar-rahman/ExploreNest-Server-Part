@@ -1,47 +1,63 @@
 import express from "express";
-import auth from "../../middlewares/auth";
-import { USER_ROLE } from "./user.constant";
-import { userControllers } from "./user.controller";
+import { UserController } from "./user.controller";
+import {
+  createUserValidationSchema,
+  updateUserValidationSchema,
+} from "./user.validation";
+import auth from "./../../middlewares/auth";
 
-import { UserValidations } from "./user.validation";
+// import { USER_ROLE } from "./user.utils";
 
-import ValidateRequest from "../../middlewares/ValidateRequest";
-import { multerUpload } from "../../config/multer.config";
-import { parseBody } from "../../middlewares/bodyParser";
+import { USER_ROLE } from './user.utils'
+import validateRequest from "../../middlewares/ValidateRequest";
 
 const router = express.Router();
-// user routes
 
-router.get("/my-bookings", auth(USER_ROLE.user), userControllers.getMyBookings);
-router.get("/users", auth(USER_ROLE.admin), userControllers.getAllUser);
-router.get("/user-info", userControllers.getUserByEmail);
-router.put(
-  "/update-user/:id",
-  auth(USER_ROLE.admin, USER_ROLE.user),
-  multerUpload.fields([{ name: "image" }]),
-  parseBody,
-  ValidateRequest(UserValidations.updateUserValidationSchema),
-  userControllers.updateUser
+router.post(
+  "/",
+  // auth(USER_ROLE.admin),
+  validateRequest(createUserValidationSchema),
+  UserController.createUser
 );
 
-router.post("/follow", userControllers.follow);
-
-router.get("/get-followers/:id", userControllers.getFollowers);
-router.get("/get-following/:id", userControllers.getFollowing);
-
-router.get("/user/:email", userControllers.getSingleUser);
-
-// get user by id
-router.get("/user-by-id/:id", userControllers.getUserById);
-
-// Change user role
-router.put("/update-user-role/:id", userControllers.updateUserRole);
-
-// statistics
 router.get(
-  "/statistics",
-  auth(USER_ROLE.admin),
-  userControllers.getSiteStatistics
+  "/",
+  // auth(USER_ROLE.admin),
+  UserController.getAllUsers
 );
+
+router.get("/:email", UserController.findUserByEmail);
+
+router.get(
+  "/:id",
+  // auth(USER_ROLE.admin, USER_ROLE.user),
+  UserController.findUserById
+);
+
+router.put(
+  "/:id",
+  // auth(USER_ROLE.admin),
+  validateRequest(updateUserValidationSchema),
+  UserController.updateUserById
+);
+
+router.delete(
+  "/:id",
+  // auth(USER_ROLE.admin),
+  UserController.deleteUserById
+);
+
+router.post(
+  "/:userId/follow",
+  auth(USER_ROLE.admin, USER_ROLE.user),
+  UserController.followUser
+);
+router.post(
+  "/:userId/unfollow",
+  auth(USER_ROLE.admin, USER_ROLE.user),
+  UserController.unFollowUser
+);
+
+router.put("/update-role/:id", UserController.updateUserRole);
 
 export const UserRoutes = router;

@@ -1,98 +1,67 @@
-import { Types } from "mongoose";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status'
 
-import { TComment } from "./comment.interface";
-import Comment from "./comment.model";
-import Post from "../post/post.model";
+import { Post } from '../post/post.model'
+import { Comment } from './comment.model'
+import AppError from '../../errors/AppError'
 
-const commentIntoPost = async (id: string, payload: TComment) => {
-  const post = await Post.findById(id);
-  if (!post) {
-    throw new Error("Post not found");
+// create comment
+const createComment = async (payload: {
+  content: string
+  author: string
+  postId: string
+}) => {
+  const comment = await (
+    await (await Comment.create(payload)).populate('author')
+  ).populate('postId')
+  if (comment) {
+    //   Add the comment to the post
+    await Post.findByIdAndUpdate(payload?.postId, {
+      $push: { comments: comment._id },
+    })
   }
-  const result = await Comment.create(payload);
+  return comment
+}
 
-  // Increment the commentsCount by 1
-  post.commentsCount = (post.commentsCount || 0) + 1;
-
-  // Save the updated post
-  await post.save();
-
-  return result;
-};
-
-const getCommentsByPostFromDB = async (id: string) => {
+// get comments by post id
+const getCommentByPostId = async (id: string) => {
   const result = await Comment.find({ postId: id })
-    .populate("userId", "_id name image")
-    .sort({ createdAt: -1 });
-  return result;
-};
+    .populate('author')
+    .populate('postId')
+  return result
+}
 
-const EditCommentIntoPost = async (id: string, payload: TComment) => {
-  const { userId, feedback } = payload;
-
-  const isFeedbackAvailable = await Comment.findById(id);
-
-  if (!isFeedbackAvailable) {
-    throw new Error("Comment not found");
+// update comment
+const updateComment = async (commentId: string, content: string) => {
+  const comment = await Comment.findById(commentId)
+  if (!comment) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Comment not found')
   }
-  // Compare userId with isFeedbackAvailable.userId
-  const isSameUser = new Types.ObjectId(userId).equals(
-    isFeedbackAvailable.userId
-  );
+  comment.content = content
+  const result = await comment.save()
+  return result
+}
 
-  if (!isSameUser) {
-    throw new Error("Unauthorized: You can only edit your own comments");
+// delete comment
+const deleteComment = async (postId: string, commentId: string) => {
+  const comment = await Comment.findById(commentId)
+  const post: any = await Post.findById(postId)
+
+  if (!comment || !post) {
+    throw new AppError(httpStatus.NOT_FOUND, 'not found')
   }
-
-  const result = await Comment.findByIdAndUpdate(
-    id,
-    {
-      feedback,
-    },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-  return result;
-};
-
-const deleteCommentFromDB = async (id: string, userId: string) => {
-  const isCommentAvailable = await Comment.findById(id);
-  if (!isCommentAvailable) {
-    throw new Error("Comment not found");
+  const result = await Comment.findByIdAndDelete(commentId)
+  // Remove the comment from the post's comment list
+  if (result) {
+    post.comments.pull(commentId)
+    await post.save()
   }
-  const isSameUser = new Types.ObjectId(userId).equals(
-    isCommentAvailable.userId
-  );
-  if (!isSameUser) {
-    throw new Error("You are not authorized to delete");
-  }
-  const result = await Comment.findByIdAndDelete(id);
+  return result
+}
 
-  //  downcomment from post
-  const postId = isCommentAvailable.postId;
-
-  //  Find the post and decrement the commentsCount
-  const post = await Post.findById(postId);
-  if (!post) {
-    throw new Error("Post not found");
-  }
-
-  // Decrement commentsCount
-  post.commentsCount = (post.commentsCount || 0) - 1;
-
-  // Save the updated post
-  await post.save();
-
-  return result;
-};
-
-export const commentServices = {
-  commentIntoPost,
-  EditCommentIntoPost,
-
-  getCommentsByPostFromDB,
-
-  deleteCommentFromDB,
-};
+export const CommentService = {
+  createComment,
+  getCommentByPostId,
+  updateComment,
+  deleteComment,
+}

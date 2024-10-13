@@ -1,4 +1,11 @@
 export type TLoginUser = {
-    email: string
-    password: string
-  }
+  name?: string
+  img?: string
+  email: string
+  password?: string
+}
+
+export type TChangePassword = {
+  oldPassword: string
+  newPassword: string
+}

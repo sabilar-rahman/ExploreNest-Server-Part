@@ -1,32 +1,26 @@
-import { z } from "zod";
+import { z } from 'zod'
 
-const createUserValidationSchema = z.object({
+export const createUserValidationSchema = z.object({
   body: z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    phone: z.string().min(10, "Phone number must be valid"),
-    role: z.enum(["admin", "user"]),
-    address: z.string().optional(),
-    // image: z.string().min(1, "Image is required"),
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string().optional(),
+    role: z.enum(['admin', 'user']).optional(), // Updated to match schema
+    img: z.string().optional(), // Updated to match schema
   }),
-});
+})
 
-const updateUserValidationSchema = z.object({
+export const updateUserValidationSchema = z.object({
   body: z.object({
-   
-   
-    name: z.string().min(1).optional(),
+    name: z.string().optional(), // Updated to match schema
     email: z.string().email().optional(),
-    password: z.string().min(6).optional(),
-    phone: z.string().min(10).optional(),
-    role: z.enum(['admin', 'user']).optional(),
-    address: z.string().optional(),
-    image: z.string().optional(),
+    password: z.string().optional(),
+    role: z.enum(['admin', 'user']).optional(), // Updated to match schema
+    img: z.string().optional(), // Updated to match schema
   }),
-});
+})
 
 export const UserValidations = {
   createUserValidationSchema,
   updateUserValidationSchema,
-};
+}

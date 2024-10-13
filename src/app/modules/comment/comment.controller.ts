@@ -1,77 +1,65 @@
-import httpStatus from 'http-status'
+
 import catchAsync from '../utils/catchAsync'
 import sendResponse from '../utils/sendResponse'
-import { commentServices } from './comment.service'
-import { getUserInfoFromToken } from '../utils/getUserInfoFromToken';
+import { CommentService } from './comment.service'
 
-
-// comment
-const postComment = catchAsync(async (req, res) => {
-  const { id } = req.params
-  const payload = req.body
-  const result = await commentServices.commentIntoPost(id, payload)
+const createComment = catchAsync(async (req, res) => {
+  const { content, postId } = req.body
+  const userId = req.user._id
+  const commentData = {
+    content,
+    author: userId,
+    postId,
+  }
+  const result = await CommentService.createComment(commentData)
   sendResponse(res, {
-    statusCode: httpStatus.OK,
     success: true,
-    message: 'Commented successfully',
+    statusCode: 200,
+    message: 'Comment added successfully!',
     data: result,
   })
-});
+})
 
-
-const getAllCommentsByPost = catchAsync(async (req, res) => {
-    const { id } = req.params
-    const result = await commentServices.getCommentsByPostFromDB(id)
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Comment retrieved successfully',
-      data: result,
-    })
-  })
-
-
-
-
-const editPostComment = catchAsync(async (req, res) => {
+// get comment by post id
+const getCommentByPostId = catchAsync(async (req, res) => {
   const { id } = req.params
-  const payload = req.body
-  const result = await commentServices.EditCommentIntoPost(id, payload)
+  const result = await CommentService.getCommentByPostId(id)
   sendResponse(res, {
-    statusCode: httpStatus.OK,
     success: true,
+    statusCode: 200,
+    message: 'Post comments retrieved successfully',
+    data: result,
+  })
+})
+
+// update comment
+const updateComment = catchAsync(async (req, res) => {
+  const { commentId } = req.params
+  const { content } = req.body
+  const result = await CommentService.updateComment(commentId, content)
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
     message: 'Comment updated successfully',
     data: result,
   })
 })
 
-
-
-
+// delete comment
 const deleteComment = catchAsync(async (req, res) => {
-    const token = req.headers.authorization
-    const { id: userId } = getUserInfoFromToken(token as string)
-    const { id } = req.params
-    // console.log(userId, id)
-    const result = await commentServices.deleteCommentFromDB(id, userId)
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Comment deleted successfully',
-      data: result,
-    })
+  const { postId, commentId } = req.params
+  const result = await CommentService.deleteComment(postId, commentId)
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'Comment deleted successfully',
+    data: result,
   })
+})
 
-
-
-
-
-
-  
-
-export const commentControllers = {
-  postComment,
-  editPostComment,
-  getAllCommentsByPost,
-  deleteComment
+export const CommentController = {
+  createComment,
+  getCommentByPostId,
+  updateComment,
+  deleteComment,
 }

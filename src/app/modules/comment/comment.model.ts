@@ -3,16 +3,19 @@ import { TComment } from './comment.interface'
 
 const commentSchema = new Schema<TComment>(
   {
-    postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
-    userId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
-    feedback: { type: String, required: true },
+    content: { type: String, required: true },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
+      required: true,
+    },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 )
 
-// Create the Comment model
-const Comment = mongoose.model<TComment>('Comment', commentSchema)
-
-export default Comment
+export const Comment = mongoose.model<TComment>('Comment', commentSchema)
