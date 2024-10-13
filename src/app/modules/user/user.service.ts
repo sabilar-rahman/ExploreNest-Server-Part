@@ -1,179 +1,97 @@
-import { Types } from 'mongoose'
-import { Booking } from '../booking/booking.model'
-import { TUser } from './user.interface'
+import QueryBuilder from '../../builder/QueryBuilder'
+import config from '../../config'
+import { UserSearchableFields } from './user.constant'
+import { IUser } from './user.interface'
 import { User } from './user.model'
-
-const createUserIntoDb = async (userData: TUser) => {
-  const result = await User.create(userData)
-  return result
-}
-
-const updateUserIntoDB = async (id: string, payload: Partial<TUser>) => {
-  const result = await User.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  })
-  return result
-}
-// const getUserFromDB = async (email: string) => {
-//   const result = await User.findOne({ email })
-//   return result
-// }
-
-const getUserFromDB = async (email: string) => {
-  const result = await User.findOne({ email }).populate(
-    'following followers',
-    '_id name image',
+import bcryptJs from 'bcryptjs'
+const createUser = async (user: IUser) => {
+  user.password = await bcryptJs.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
   )
-  return result
+  return await User.create(user)
 }
 
+const findUserById = async (userId: string) => {
+  return await User.findById(userId)
+}
+const findUserFromDBByEmail = async (email: string) => {
+  return await User.findOne({ email })
+}
 
+const getAllUsers = async (query: Record<string, unknown>) => {
+  const userQuery = new QueryBuilder(User.find(), query)
+    .search(UserSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields()
 
-const getMyBookingsFromDb = async (email: string) => {
-  // const result = await Booking.find().populate('customer')
-  const user = await User.findOne({ email })
-  if (user) {
-    const result = await Booking.find({
-      // customer: user._id,
-      status: { $ne: 'pending' },
-    })
-      .populate('service', '_id name description price duration')
-      .populate('slot', '_id service date startTime endTime isBooked')
-      .select('-customer')
-      .sort({ createdAt: -1 })
-      .lean()
-    return result
+  const result = await userQuery.modelQuery
+  const metaData = await userQuery.countTotal()
+  return {
+    meta: metaData,
+    data: result,
   }
 }
 
-
-
-
-
-
-
-
-
-
-type FollowPayload = {
-  userId: string // Assuming you're passing userId and targetedId as strings
-  targetedId: string
-}
-
-const followUser = async (payload: FollowPayload) => {
-  const { userId, targetedId } = payload
-
-  // Convert string IDs to ObjectId
-  const userObjectId = new Types.ObjectId(userId)
-  const targetedObjectId = new Types.ObjectId(targetedId)
-
-  const targetedUser = await User.findById(targetedObjectId)
-  if (!targetedUser) {
-    throw new Error('User not found')
-  }
-
-  const isFollowing = targetedUser.followers.includes(userObjectId)
-
-  if (isFollowing) {
-    await User.findByIdAndUpdate(userObjectId, {
-      $pull: { following: targetedObjectId },
-    })
-    await User.findByIdAndUpdate(targetedObjectId, {
-      $pull: { followers: userObjectId },
-    })
-    return  'Unfollow successfully' 
-  } else {
-    await User.findByIdAndUpdate(userObjectId, {
-      $push: { following: targetedObjectId },
-    })
-    await User.findByIdAndUpdate(targetedObjectId, {
-      $push: { followers: userObjectId },
-    })
-    return  'Followed successfully' 
-  }
-}
-
-
-
-
-
-
-
-
-const getFollowersFromDB = async (id: string) => {
-  // Find the user by ID and populate the followers field
-  const userWithFollowers = await User.findById(id)
-    .populate('followers', 'name email image') // Specify the fields you want from the follower
-    .select('followers')
-
-  if (!userWithFollowers) {
-    throw new Error('User not found')
-  }
-  return userWithFollowers
-}
-const getFollowingFromDB = async (id: string) => {
-  // Find the user by ID and populate the followers field
-  const userWithFollowing = await User.findById(id)
-    .populate('following', 'name email image') // Specify the fields you want from the follower
-    .select('followers')
-
-  if (!userWithFollowing) {
-    throw new Error('User not found')
-  }
-  return userWithFollowing
-}
-
-
-
-
-
-
-const updateUserRoleIntoDB = async (id: string, payload: Partial<TUser>) => {
-  const result = await User.findByIdAndUpdate(id, payload, {
+const updateUserById = async (userId: string, payload: Partial<IUser>) => {
+  const result = await User.findByIdAndUpdate({ _id: userId }, payload, {
     new: true,
     runValidators: true,
   })
   return result
 }
 
-
-
-const getUserByIdFromDB = async (id: string) => {
-  const result = await User.findById(id).populate(
-    'following followers',
-    '_id name image',
-  )
-  if (!result) {
-    throw new Error('User not found!')
-  }
+const deleteUserById = async (userId: string) => {
+  const result = await User.findByIdAndDelete(userId)
   return result
 }
 
+// follow user
+const followUser = async (userId: string, currentUserId: string) => {
+  // Add the followed user's ID to the current user's following list
+  await User.findByIdAndUpdate(currentUserId, {
+    $addToSet: { following: userId },
+  })
 
+  // Add the current user's ID to the followed user's followers list
+  await User.findByIdAndUpdate(userId, {
+    $addToSet: { followers: currentUserId },
+  })
+}
+// unFollow user
+const unFollowUser = async (userId: string, currentUserId: string) => {
+  // Remove the unfollowed user's ID from the current user's following list
+  await User.findByIdAndUpdate(currentUserId, {
+    $pull: { following: userId },
+  })
 
+  // Remove the current user's ID from the unfollowed user's followers list
+  await User.findByIdAndUpdate(userId, {
+    $pull: { followers: currentUserId },
+  })
+}
 
+const updateUserRoleIntoDB = async (id: string) => {
+  const res = await User.findByIdAndUpdate(
+    id,
+    {
+      role: 'admin',
+    },
+    { new: true, runValidators: true },
+  )
+  return res
+}
 
-
-
-
-
-export const userServices = {
-  createUserIntoDb,
-  getMyBookingsFromDb,
-  getUserFromDB,
-  updateUserIntoDB,
+export const UserService = {
+  createUser,
+  findUserById,
+  getAllUsers,
+  updateUserById,
+  deleteUserById,
+  findUserFromDBByEmail,
   followUser,
-
-  getFollowersFromDB,
-  getFollowingFromDB,
-
-
-
+  unFollowUser,
   updateUserRoleIntoDB,
-
-
-
-  getUserByIdFromDB
-
 }

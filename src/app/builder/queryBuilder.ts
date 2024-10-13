@@ -1,73 +1,82 @@
-import { FilterQuery, Query } from "mongoose";
+import { FilterQuery, Query } from 'mongoose'
 
-const buildQuery = async <T>(
-  modelQuery: Query<T[], T>,
-  query: Record<string, unknown>,
-  searchAbleFields: string[]
-) => {
-  // searchQuery
-  let queryConstructor = modelQuery.find();
-  let searchTerm = "";
-  if (query?.searchTerm) {
-    searchTerm = query?.searchTerm as string;
-    queryConstructor = queryConstructor.find({
-      $or: searchAbleFields.map((field) => ({
-        [field]: { $regex: searchTerm, $options: "i" },
-      })),
-    } as FilterQuery<T>);
+class QueryBuilder<T> {
+  public modelQuery: Query<T[], T>
+  public query: Record<string, unknown>
+
+  constructor(modelQuery: Query<T[], T>, query: Record<string, unknown>) {
+    this.modelQuery = modelQuery
+    this.query = query
   }
 
-  //filter query
-  const queryObj = { ...query };
-  const excludesFields = [
-    "searchTerm",
-    "sort",
-    "limit",
-    "page",
-    "skip",
-    "fields",
-  ];
-  excludesFields.forEach((ele) => delete queryObj[ele]);
+  search(searchableFields: string[]) {
+    const searchTerm = this?.query?.searchTerm
+    if (searchTerm) {
+      this.modelQuery = this.modelQuery.find({
+        $or: searchableFields.map(
+          field =>
+            ({
+              [field]: { $regex: searchTerm, $options: 'i' },
+            }) as FilterQuery<T>,
+        ),
+      })
+    }
 
-  // max min price will be here
-
-
-
-
-
-  
-
-  queryConstructor = queryConstructor.find(queryObj as FilterQuery<T>);
-
-  //sort query
-  let sort = "-createdAt";
-  if (query?.sort) {
-    sort = (query?.sort as string).split(",").join(" ");
-    queryConstructor = queryConstructor.sort(sort);
+    return this
   }
 
-  //paginate query
-  let limit = 1;
-  let page = 1;
-  let skip = 0;
-  if (query?.limit) {
-    limit = Number(query?.limit);
-    queryConstructor = queryConstructor.limit(limit);
-  }
-  if (query?.page) {
-    page = Number(query?.page);
-    skip = (page - 1) * limit;
-    queryConstructor = queryConstructor.skip(skip);
-  }
+  filter() {
+    const queryObj = { ...this.query } // copy
 
-  //fields filtering
-  let fields = "-__v";
-  if (query?.fields) {
-    fields = (query?.fields as string).split(",").join(" ");
-    queryConstructor = queryConstructor.select(fields);
+    // Filtering
+    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields']
+
+    excludeFields.forEach(el => delete queryObj[el])
+
+    this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>)
+
+    return this
   }
 
-  return queryConstructor;
-};
+  sort() {
+    const sort =
+      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt'
+    this.modelQuery = this.modelQuery.sort(sort as string)
 
-export default buildQuery;
+    return this
+  }
+
+  paginate() {
+    const page = Number(this?.query?.page) || 1
+    const limit = Number(this?.query?.limit) || 10
+    const skip = (page - 1) * limit
+
+    this.modelQuery = this.modelQuery.skip(skip).limit(limit)
+
+    return this
+  }
+
+  fields() {
+    const fields =
+      (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v'
+
+    this.modelQuery = this.modelQuery.select(fields)
+    return this
+  }
+  async countTotal() {
+    const totalQueries = this.modelQuery.getFilter()
+    const total = await this.modelQuery.model.countDocuments(totalQueries)
+    const page = Number(this?.query?.page) || 1
+    const limit = Number(this?.query?.limit)
+    const totalPage = Math.ceil(total / limit)
+
+    return {
+      page,
+      limit,
+      total,
+      totalPage,
+    }
+  }
+}
+
+export default QueryBuilder

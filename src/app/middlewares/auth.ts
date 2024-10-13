@@ -1,61 +1,84 @@
-import { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import config from "../config";
-import catchAsync from "../modules/utils/catchAsync";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
+import { ErrorRequestHandler } from 'express'
+import { ZodError } from 'zod'
+import config from '../config'
+import { TErrorSources } from '../interface/error.interface'
+import handleZodError from '../Error/handleZodError'
+import handleCastError from '../Error/handleCastError'
+import handleDuplicateError from '../Error/handleDuplicateError'
+import AppError from '../Error/AppError'
+import handleValidationError from '../Error/handleValidationError'
 
-import { TUserRole } from "../modules/user/user.interface";
-import httpStatus from "http-status";
-import { User } from "../modules/user/user.model";
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  //setting default values
+  let statusCode = 500
+  let message = 'Something went wrong!'
+  let errorSources: TErrorSources = [
+    {
+      path: '',
+      message: 'Something went wrong',
+    },
+  ]
 
+  if (err instanceof ZodError) {
+    const simplifiedError = handleZodError(err)
+    statusCode = simplifiedError?.statusCode
+    message = simplifiedError?.message
+    errorSources = simplifiedError?.errorSources
+  } else if (err?.name === 'ValidationError') {
+    const simplifiedError = handleValidationError(err)
+    statusCode = simplifiedError?.statusCode
+    message = simplifiedError?.message
+    errorSources = simplifiedError?.errorSources
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err)
+    statusCode = simplifiedError?.statusCode
+    message = simplifiedError?.message
+    errorSources = simplifiedError?.errorSources
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err)
+    statusCode = simplifiedError?.statusCode
+    message = simplifiedError?.message
+    errorSources = simplifiedError?.errorSources
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode
+    message = err.message
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ]
+  } else if (err instanceof Error) {
+    message = err.message
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ]
+  }
 
-
-
-const auth = (...requiredRoles: TUserRole[]) => {
-  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization
-    const token = authHeader && authHeader.split(' ')[1]
-
-    // checking if the token is missing
-    if (!token) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        success: false,
-        statusCode: httpStatus.UNAUTHORIZED,
-        message: 'You have no access to this route',
-      })
-    }
-    // checking if the given token is valid
-    const decoded = jwt.verify(
-      token,
-      config.jwt_access_secret as string,
-    ) as JwtPayload
-
-    const { role, email } = decoded
-
-    // console.log(email)
-
-    // checking if the user is exist
-    const user = await User.isUserExistsByEmail(email)
-
-    if (!user) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        success: false,
-        statusCode: httpStatus.UNAUTHORIZED,
-        message: 'You have no access to this route',
-      })
-    }
-    // checking if the user is already deleted
-
-    if (requiredRoles && !requiredRoles.includes(role)) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        success: false,
-        statusCode: httpStatus.UNAUTHORIZED,
-        message: 'You have no access to this route',
-      })
-    }
-
-    req.user = decoded as JwtPayload
-    next()
+  //ultimate return
+  return res.status(statusCode).json({
+    success: false,
+    message,
+    errorSources,
+    err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
   })
 }
 
-export default auth
+export default globalErrorHandler
+
+//pattern
+/*
+success
+message
+errorSources:[
+  path:'',
+  message:''
+]
+stack
+*/

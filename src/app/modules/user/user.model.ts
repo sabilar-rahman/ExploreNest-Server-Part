@@ -1,70 +1,44 @@
-import { Schema, model } from "mongoose";
-import bcrypt from "bcrypt";
-import { TUser, UserModel } from "./user.interface";
-import config from "../../config";
+/* eslint-disable no-useless-escape */
+// models/User.ts
+import mongoose, { Schema } from 'mongoose'
+import { IUser } from './user.interface'
+import { validateEmail } from './user.utils'
 
-const userSchema = new Schema<TUser, UserModel>(
+const userSchema: Schema<IUser> = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    phone: { type: String, required: true },
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      required: true,
+      validate: [validateEmail, 'Please fill a valid email address'],
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        'Please fill a valid email address',
+      ],
+    },
+    password: {
+      type: String,
+    },
+    lastLogin: { type: Date },
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: ['admin', 'user', 'driver'],
+      default: 'user',
     },
-    image: { type: String, required: false },
-    address: { type: String, required: false },
-    status: {
-      type: String,
-      enum: ["basic", "premium"],
-      default: "basic",
-    },
-    // followers: [{ type: Schema.Types.ObjectId, ref: 'user', required: true }],
-    // following: [{ type: Schema.Types.ObjectId, ref: 'user', required: true }],
-
-    followers: [{ type: Schema.Types.ObjectId, ref: "user", required: false }],
-    following: [{ type: Schema.Types.ObjectId, ref: "user" , required: false}],
+    img: { type: String },
+    verified: { type: Boolean, default: false },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,
-  }
-);
+  },
+)
 
-userSchema.pre("save", async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this; // doc
-  // hashing password and save into DB
-
-  if (!user.isModified("password")) {
-    return next();
-  }
-
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds)
-  );
-  next();
-});
-
-userSchema.methods.toJSON = function () {
-  const userObject = this.toObject();
-
-  delete userObject.password;
-
-  return userObject;
-};
-
-// Static method to find user by email
-userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await this.findOne({ email });
-};
-userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword,
-  hashedPassword
-) {
-  return await bcrypt.compare(plainTextPassword, hashedPassword);
-};
-
-export const User = model<TUser, UserModel>("user", userSchema);
+export const User = mongoose.model<IUser>('User', userSchema)
