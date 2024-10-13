@@ -1,29 +1,29 @@
-// import { model, Schema } from 'mongoose'
-// import { TPaymentInfo } from './payment.interface'
+import mongoose, { Schema } from 'mongoose'
+import { TPayment } from './payment.interface'
 
-// const paymentInfoSchema = new Schema<TPaymentInfo>({
-//   cus_name: {
-//     type: String,
-//     required: true,
-//   },
-//   cus_email: {
-//     type: String,
-//     required: true,
-//   },
-//   cus_phone: {
-//     type: String,
-//     required: true,
-//   },
-//   amount: {
-//     type: Number,
-//     required: true,
-//   },
-//   serviceId: {
-//     type: String,
-//   },
-//   slot: {
-//     type: String,
-//   },
-// })
+const paymentSchema = new Schema<TPayment>(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    transactionId: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  },
+)
 
-// export const Payment = model<TPaymentInfo>('payment', paymentInfoSchema)
+export const Payment = mongoose.model<TPayment>('payment', paymentSchema)
