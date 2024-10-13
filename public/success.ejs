@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Success</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-green-100">
+    <div class="text-center bg-white p-10 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-green-600 mb-4"><%= status %>!</h1>
+      <p class="text-lg text-gray-700"><%= message %></p>
+      <p class="text-sm text-gray-600">Transaction ID: <%= transactionId %></p>
+      <button
+        id="dashboardLink"
+        class="mt-6 inline-block bg-green-500 text-white py-2 px-4 rounded cursor-pointer"
+        >Go to Profile</
+      >
+    </div>
+    <!-- script -->
+    <script>
+      // Optional: Add a click event listener to the link
+      document
+        .getElementById('dashboardLink')
+        .addEventListener('click', function (event) {
+          // Prevent the default behavior if you want to handle something before redirect
+          // event.preventDefault();
+          window.location.href = 'http://localhost:3000/profile' // Redirect immediately
+        })
+    </script>
+  </body>
+</html>

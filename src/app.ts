@@ -1,22 +1,22 @@
 import express, { Application, Request, Response } from "express";
 import router from "./app/routes";
 import globalErrorHandler from "./app/middlewares/globalErrorhandelers";
-import notFound from "./app/middlewares/notfound";
+import notFound from "./app/middlewares/notFoundRoute";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
+const app: Application = express();
+
+app.use(express.static(path.join(__dirname, "../public")));
 
 // const app = express();
 
-const app: Application = express();
-
-// "https://turbo-shine-client-frontend.vercel.app",
-// "https://turbo-shine-server-backend.vercel.app",
-// "https://turboshine.netlify.app",
+// Add CORS middleware
 app.use(
   cors({
     origin: [
       "https://turbo-shine-client-frontend.vercel.app",
-      'http://localhost:3000',
+      "http://localhost:3000",
     ],
     credentials: true,
     // Allow cookies, authorization headers with the same origin, and credentials
@@ -27,10 +27,8 @@ app.use(
 app.use(express.json()); // This will parse incoming JSON requests
 app.use(cookieParser());
 
-
-// commonly used when submitting form data from a browser
-app.use(express.urlencoded({ extended: true }))
-
+// Add EJS view engine
+app.set("view engine", "ejs");
 
 
 app.get("/", (req: Request, res: Response) => {
