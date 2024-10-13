@@ -1,14 +1,16 @@
-import catchAsync from '../../utility/catchAsync'
+
 import crypto from 'crypto'
 import { PaymentService } from './payment.service'
-import sendResponse from '../../utility/sendResponse'
+import catchAsync from '../utils/catchAsync'
+import sendResponse from '../utils/sendResponse'
+
 
 const makePayment = catchAsync(async (req, res) => {
   const transactionId = crypto.randomBytes(16).toString('hex')
   const modifiedPaymentObj = {
     cus_name: req.body.name,
     cus_email: req.body.email,
-    cus_phone: '01846343410',
+    cus_phone: '01720084302',
     amount: req.body.amount,
     tran_id: transactionId,
     signature_key: 'dbb74894e82415a2f7ff0ec3a97e4183',

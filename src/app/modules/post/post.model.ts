@@ -22,10 +22,12 @@ const postSchema: Schema<TPost> = new mongoose.Schema(
       },
     ],
     premium: { type: Boolean, default: false },
+   
   },
   {
     timestamps: true,
   },
+
 )
 
 export const Post = mongoose.model<TPost>('Post', postSchema)
