@@ -8,8 +8,9 @@ import auth from "./../../middlewares/auth";
 
 // import { USER_ROLE } from "./user.utils";
 
-import { USER_ROLE } from './user.utils'
+
 import validateRequest from "../../middlewares/ValidateRequest";
+import { USER_ROLE } from "./user.utils";
 
 const router = express.Router();
 

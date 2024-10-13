@@ -1,9 +1,8 @@
-export interface TPaymentInfo {
-    transactionId: string
-    amount: string
-    customerName?: string
-    customerEmail?: string
-    customerPhone?: string
-    customerAddress?: string
-    paidStatus?: string
-  }
+import { Types } from 'mongoose'
+
+export type TPayment = {
+  userId: Types.ObjectId
+  transactionId: string
+  status: string
+  amount: number
+}
