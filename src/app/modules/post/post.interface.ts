@@ -17,4 +17,8 @@ export type TPost = {
   downVotes: number
   voters: Voter[]
   premium?: boolean
+  createdAt?: Date;
+  updatedAt?: Date;
+  
+
 }
