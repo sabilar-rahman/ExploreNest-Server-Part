@@ -43,16 +43,30 @@ const refreshToken = catchAsync(async (req, res) => {
 })
 
 // change password
+// const changePassword = catchAsync(async (req, res) => {
+//   const { email } = req.params
+//   const result = await AuthServices.changePasswordToDB(req.body, email)
+//   sendResponse(res, {
+//     success: true,
+//     message: 'Password changed successfully',
+//     statusCode: 200,
+//     data: result,
+//   })
+// })
+
 const changePassword = catchAsync(async (req, res) => {
-  const { email } = req.params
-  const result = await AuthServices.changePasswordToDB(req.body, email)
+  const { ...passwordData } = req.body;
+  const { email } = req.user; // Extract email from req.user
+
+  const result = await AuthServices.changePasswordToDB( passwordData,email);
   sendResponse(res, {
+    statusCode: httpStatus.OK,
     success: true,
-    message: 'Password changed successfully',
-    statusCode: 200,
+    message: "Password updated successfully!",
     data: result,
-  })
-})
+  });
+});
+
 
 // forget password
 const forgetPassword = catchAsync(async (req, res) => {

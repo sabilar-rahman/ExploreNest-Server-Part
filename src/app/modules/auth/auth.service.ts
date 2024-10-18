@@ -12,6 +12,23 @@ import { USER_ROLE } from '../user/user.utils'
 import { sendEmail } from '../utils/sendEmail'
 
 
+
+const registerUser = async (userData: TLoginUser) => {
+  if (userData.password) {
+    userData.password = await bcryptJs.hash(
+      userData.password,
+      Number(config.bcrypt_salt_rounds),
+    )
+  }
+  const user = await User.create({
+    ...userData,
+    role: USER_ROLE.user,
+  })
+
+  return user
+}
+
+
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
   const user = await User.findOne({ email: payload.email })
@@ -103,20 +120,7 @@ const refreshToken = async (token: string) => {
   }
 }
 
-const registerUser = async (userData: TLoginUser) => {
-  if (userData.password) {
-    userData.password = await bcryptJs.hash(
-      userData.password,
-      Number(config.bcrypt_salt_rounds),
-    )
-  }
-  const user = await User.create({
-    ...userData,
-    role: USER_ROLE.user,
-  })
 
-  return user
-}
 
 const changePasswordToDB = async (payload: TChangePassword, email: string) => {
   const user = await User.findOne({ email })
@@ -134,6 +138,8 @@ const changePasswordToDB = async (payload: TChangePassword, email: string) => {
   const res = await user?.save()
   return res
 }
+
+
 
 // forget password
 const forgetPassword = async (email: string) => {
@@ -154,6 +160,8 @@ const forgetPassword = async (email: string) => {
   const resetLink = `${config.reset_password_ui_link}?email=${user.email}&token=${resetToken}`
   sendEmail(user?.email, resetLink)
 }
+
+
 
 // reset password
 const resetPassword = async (
