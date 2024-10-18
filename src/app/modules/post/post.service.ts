@@ -5,10 +5,11 @@ import httpStatus from 'http-status'
 
 import { TPost } from './post.interface'
 import { Post } from './post.model'
-import QueryBuilder from '../../builder/QueryBuilder'
+
 import { User } from '../user/user.model'
 import { searchableFields } from '../utils/searchFields'
 import AppError from '../../errors/AppError'
+import QueryBuilder from '../../builder/QueryBuilder'
 
 
 

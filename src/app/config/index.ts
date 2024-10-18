@@ -40,4 +40,17 @@ export default {
   jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUND,
   reset_password_ui_link: process.env.RESET_PASSWORD_UI_LINK,
+
+
+
+
+store_id: process.env.STORE_ID, 
+signature_key: process.env.SIGNATURE_KEY,
+aamarpay_url: process.env.PAYMENT_URL,
+payment_verify_url: process.env.PAYMENT_VERIFY_URL,
+
+
+backendUrl: process.env.BACKEND_LIVE_URL_LINK,
+frontendUrl: process.env.CLIENT_LIVE_URL_LINK
+
 }

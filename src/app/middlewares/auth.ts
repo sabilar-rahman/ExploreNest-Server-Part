@@ -32,6 +32,12 @@ const auth = (...requiredRoles: (keyof typeof USER_ROLE)[]) => {
       throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !')
     }
 
+    // there need iat for password change at
+
+
+
+
+
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized  hi!')
     }
