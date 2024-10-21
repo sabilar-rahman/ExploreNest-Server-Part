@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // import axios from 'axios'
 
 // const verifyPayment = async (transactionId: string) => {
@@ -73,30 +75,31 @@
 
 import axios from 'axios'
 import config from '../../config';
+import { TPaymentInfo } from './payment.interface';
 
 // import crypto from 'crypto'
 
 
-export const initiatePayment = async ( PaymentDetails:any) => {
+export const initiatePayment = async ( PaymentDetails:TPaymentInfo) => {
   // const transactionId = crypto.randomBytes(16).toString('hex')
   const response = await axios.post(config.aamarpay_url!, {
     store_id: config.store_id,
     signature_key: config.signature_key,
     tran_id: PaymentDetails.transactionId,
-    success_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=success&payload=${encodeURIComponent(JSON.stringify(payload))}`,
+    success_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=success`,
     fail_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=failed`,
     cancel_url: `${config.frontendUrl}`,
     amount: PaymentDetails.amount,
     currency: "BDT",
     desc: "Payment for get a premium accessability for your profile",
-    cus_name: PaymentDetails.customer.name,
-    cus_email: PaymentDetails.customer.email,
-    cus_add1: PaymentDetails.customer.city || "Dhaka",
+    cus_name: PaymentDetails.customerName,
+    cus_email: PaymentDetails.customerEmail,
+    cus_add1:  "Dhaka",
     cus_city: "Dhaka",
     cus_state: "Dhaka",
     cus_postcode: "1206",
     cus_country: "Bangladesh",
-    cus_phone: PaymentDetails?.customer.phone,
+    cus_phone: "01720084302",
     type: "json",
   });
 
@@ -104,14 +107,14 @@ export const initiatePayment = async ( PaymentDetails:any) => {
 };
 
 
-export const verifyPayment = async (tnxId: string | undefined) => {
+export const verifyPayment = async (transitionId: string) => {
   try {
     const response = await axios.get(config.payment_verify_url!, {
       params: {
         store_id: config.store_id,
         signature_key: config.signature_key,
         type: "json",
-        request_id: tnxId,
+        request_id:  transitionId,
       },
     });
 
