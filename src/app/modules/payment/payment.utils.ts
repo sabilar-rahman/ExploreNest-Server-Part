@@ -17,7 +17,6 @@
 //   return response?.data
 // }
 
-
 // export default verifyPayment
 
 // ++++++++++++++++++++++++++++++++++++++++++
@@ -26,8 +25,6 @@
 // import axios from "axios";
 // // import { TPayment } from "./payment.interface";
 // import config from "../../config";
-
-
 
 // export const initialPayment = async (paymentData :any) => {
 //   // const frontendUrl = `${config.NODE_ENV === "development" ? config.frontend_base_url : config.frontend_live_url}`;
@@ -72,29 +69,27 @@
 //   return response.data;
 // };
 
-
-import axios from 'axios'
-import config from '../../config';
-import { TPaymentInfo } from './payment.interface';
+import axios from "axios";
+import config from "../../config";
+import { TPaymentInfo } from "./payment.interface";
 
 // import crypto from 'crypto'
 
-
-export const initiatePayment = async ( PaymentDetails:TPaymentInfo) => {
+export const initiatePayment = async (PaymentDetails: TPaymentInfo) => {
   // const transactionId = crypto.randomBytes(16).toString('hex')
   const response = await axios.post(config.aamarpay_url!, {
     store_id: config.store_id,
     signature_key: config.signature_key,
     tran_id: PaymentDetails.transactionId,
-    success_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=success`,
-    fail_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=failed`,
+    success_url: `${config.backendUrl}/api/payment/confirmation/${PaymentDetails.user}?transactionId=${PaymentDetails.transactionId}&status=success`,
+    fail_url: `${config.backendUrl}/api/payment/confirmation/${PaymentDetails.user}?transactionId=${PaymentDetails.transactionId}&status=failed`,
     cancel_url: `${config.frontendUrl}`,
     amount: PaymentDetails.amount,
     currency: "BDT",
     desc: "Payment for get a premium accessability for your profile",
     cus_name: PaymentDetails.customerName,
     cus_email: PaymentDetails.customerEmail,
-    cus_add1:  "Dhaka",
+    cus_add1: "Dhaka",
     cus_city: "Dhaka",
     cus_state: "Dhaka",
     cus_postcode: "1206",
@@ -106,7 +101,6 @@ export const initiatePayment = async ( PaymentDetails:TPaymentInfo) => {
   return response.data;
 };
 
-
 export const verifyPayment = async (transitionId: string) => {
   try {
     const response = await axios.get(config.payment_verify_url!, {
@@ -114,7 +108,7 @@ export const verifyPayment = async (transitionId: string) => {
         store_id: config.store_id,
         signature_key: config.signature_key,
         type: "json",
-        request_id:  transitionId,
+        request_id: transitionId,
       },
     });
 
