@@ -1,4 +1,4 @@
-import axios from 'axios'
+// import axios from 'axios'
 
 // const verifyPayment = async (transactionId: string) => {
 //   const response = await axios.post(
@@ -71,28 +71,52 @@ import axios from 'axios'
 // };
 
 
-export const initiatePayment = async (payload: TPaymentData) => {
-  const response = await axios.post(config.payment_url!, {
+import axios from 'axios'
+import config from '../../config';
+
+// import crypto from 'crypto'
+
+
+export const initiatePayment = async ( PaymentDetails:any) => {
+  // const transactionId = crypto.randomBytes(16).toString('hex')
+  const response = await axios.post(config.aamarpay_url!, {
     store_id: config.store_id,
     signature_key: config.signature_key,
-    tran_id: payload.transactionId,
-    success_url: `${config.backend_url}/api/payment/confirmation?transactionId=${payload.transactionId}&status=success&payload=${encodeURIComponent(JSON.stringify(payload))}`,
-    fail_url: `${config.backend_url}/api/payment/confirmation?transactionId=${payload.transactionId}&status=failed`,
-    cancel_url: `${config.frontend_url}`,
-    amount: payload.price,
+    tran_id: PaymentDetails.transactionId,
+    success_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=success&payload=${encodeURIComponent(JSON.stringify(payload))}`,
+    fail_url: `${config.backendUrl}/api/payment/confirmation?transactionId=${PaymentDetails.transactionId}&status=failed`,
+    cancel_url: `${config.frontendUrl}`,
+    amount: PaymentDetails.amount,
     currency: "BDT",
-    desc: "Merchant Registration Payment",
-    cus_name: payload?.paymentUser?.name,
-    cus_email: payload?.paymentUser?.email,
-    cus_add1: payload?.paymentUser?.address,
-    cus_add2: payload?.paymentUser?.address,
+    desc: "Payment for get a premium accessability for your profile",
+    cus_name: PaymentDetails.customer.name,
+    cus_email: PaymentDetails.customer.email,
+    cus_add1: PaymentDetails.customer.city || "Dhaka",
     cus_city: "Dhaka",
     cus_state: "Dhaka",
     cus_postcode: "1206",
     cus_country: "Bangladesh",
-    cus_phone: payload?.paymentUser?.mobileNumber,
+    cus_phone: PaymentDetails?.customer.phone,
     type: "json",
   });
 
   return response.data;
+};
+
+
+export const verifyPayment = async (tnxId: string | undefined) => {
+  try {
+    const response = await axios.get(config.payment_verify_url!, {
+      params: {
+        store_id: config.store_id,
+        signature_key: config.signature_key,
+        type: "json",
+        request_id: tnxId,
+      },
+    });
+
+    return response.data;
+  } catch (err) {
+    throw new Error("Payment validation failed!");
+  }
 };
