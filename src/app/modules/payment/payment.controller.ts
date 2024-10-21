@@ -75,11 +75,13 @@
 import httpStatus from "http-status";
 import catchAsync from "../utils/catchAsync";
 import sendResponse from "../utils/sendResponse";
+import { PaymentServices } from "./payment.service";
 
 
 
 const createPayment = catchAsync(async (req, res) => {
-  const result = await PaymentServices.createPaymentIntoDB(req.body);
+  const { userId } = req.params;
+  const result = await PaymentServices.createPaymentIntoDB(req.body , userId as string);
 
   sendResponse(res, {
     success: true,
@@ -91,15 +93,19 @@ const createPayment = catchAsync(async (req, res) => {
 
 const confirmationController = catchAsync(async (req, res) => {
   const { transactionId, payload } = req.query;
+  const { userId } = req.params;
+
   const result = await PaymentServices.confirmationService(
     transactionId as string,
     payload as string,
+    userId as string
   );
 
   res.send(result);
 });
 
 const getAllPayments = catchAsync(async (req, res) => {
+  
   const payments = await PaymentServices.getAllPaymentsFromDB();
 
   sendResponse(res, {
