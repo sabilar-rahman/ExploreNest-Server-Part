@@ -1,22 +1,22 @@
 import axios from 'axios'
 
-const verifyPayment = async (transactionId: string) => {
-  const response = await axios.post(
-    `https://sandbox.aamarpay.com/api/v1/trxcheck/request.php`,
-    {
-      params: {
-        store_id: 'aamarpaytest',
-        signature_key: 'dbb74894e82415a2f7ff0ec3a97e4183',
-        type: 'json',
-        request_id: transactionId,
-      },
-    },
-  )
-  return response?.data
-}
+// const verifyPayment = async (transactionId: string) => {
+//   const response = await axios.post(
+//     `https://sandbox.aamarpay.com/api/v1/trxcheck/request.php`,
+//     {
+//       params: {
+//         store_id: 'aamarpaytest',
+//         signature_key: 'dbb74894e82415a2f7ff0ec3a97e4183',
+//         type: 'json',
+//         request_id: transactionId,
+//       },
+//     },
+//   )
+//   return response?.data
+// }
 
 
-export default verifyPayment
+// export default verifyPayment
 
 // ++++++++++++++++++++++++++++++++++++++++++
 
@@ -69,3 +69,30 @@ export default verifyPayment
 
 //   return response.data;
 // };
+
+
+export const initiatePayment = async (payload: TPaymentData) => {
+  const response = await axios.post(config.payment_url!, {
+    store_id: config.store_id,
+    signature_key: config.signature_key,
+    tran_id: payload.transactionId,
+    success_url: `${config.backend_url}/api/payment/confirmation?transactionId=${payload.transactionId}&status=success&payload=${encodeURIComponent(JSON.stringify(payload))}`,
+    fail_url: `${config.backend_url}/api/payment/confirmation?transactionId=${payload.transactionId}&status=failed`,
+    cancel_url: `${config.frontend_url}`,
+    amount: payload.price,
+    currency: "BDT",
+    desc: "Merchant Registration Payment",
+    cus_name: payload?.paymentUser?.name,
+    cus_email: payload?.paymentUser?.email,
+    cus_add1: payload?.paymentUser?.address,
+    cus_add2: payload?.paymentUser?.address,
+    cus_city: "Dhaka",
+    cus_state: "Dhaka",
+    cus_postcode: "1206",
+    cus_country: "Bangladesh",
+    cus_phone: payload?.paymentUser?.mobileNumber,
+    type: "json",
+  });
+
+  return response.data;
+};
