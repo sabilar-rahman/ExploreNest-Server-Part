@@ -84,6 +84,33 @@ const updateUserRoleIntoDB = async (id: string) => {
   return res
 }
 
+
+// const getCurrentUserFromDB = async (userEmail: string, userRole: string) => {
+//   const result = await User.findOne({ email: userEmail, role: userRole })
+//     .select("-password")
+//     .populate({
+//       path: "bookmarkPosts",
+//       populate: {
+//         path: "author",
+//         select: "-password",
+//       },
+//     })
+//     .populate("following")
+//     .populate("followers");
+
+//   return result;
+// };
+
+
+const getCurrentUserFromDB = async (userEmail: string, userRole: string) => {
+  const result = await User.findOne({ email: userEmail, role: userRole })
+    .select("-password")
+    .populate("following")
+    .populate("followers");
+
+  return result;
+};
+
 export const UserService = {
   createUser,
   findUserById,
@@ -94,4 +121,5 @@ export const UserService = {
   followUser,
   unFollowUser,
   updateUserRoleIntoDB,
+  getCurrentUserFromDB
 }

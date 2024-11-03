@@ -46,3 +46,4 @@ router.post(
 router.put('/last-login/:userId', AuthControllers.updateLastLogin)
 
 export const AuthRoutes = router
+

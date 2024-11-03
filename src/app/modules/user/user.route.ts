@@ -61,4 +61,7 @@ router.post(
 
 router.put("/update-role/:id", UserController.updateUserRole);
 
+
+
+router.get("/current-user",UserController.getCurrentUser);
 export const UserRoutes = router;

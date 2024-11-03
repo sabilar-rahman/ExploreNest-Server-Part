@@ -109,6 +109,21 @@ const updateUserRole = catchAsync(async (req, res) => {
   })
 })
 
+
+const getCurrentUser = catchAsync(async (req, res) => {
+  const { email, role } = req.user;
+
+  const result = await UserService.getCurrentUserFromDB(email, role);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Current user retrieved successfully!",
+    data: result,
+  });
+});
+
+
 export const UserController = {
   createUser,
   findUserById,
@@ -119,4 +134,5 @@ export const UserController = {
   followUser,
   unFollowUser,
   updateUserRole,
+  getCurrentUser
 }
