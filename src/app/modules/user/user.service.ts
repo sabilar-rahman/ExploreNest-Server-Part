@@ -1,16 +1,17 @@
 import QueryBuilder from '../../builder/QueryBuilder'
-import config from '../../config'
+// import config from '../../config'
 import { UserSearchableFields } from './user.constant'
 import { IUser } from './user.interface'
 import { User } from './user.model'
-import bcryptJs from 'bcryptjs'
-const createUser = async (user: IUser) => {
-  user.password = await bcryptJs.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds),
-  )
-  return await User.create(user)
-}
+// import bcryptJs from 'bcryptjs'
+
+// const createUser = async (user: IUser) => {
+//   user.password = await bcryptJs.hash(
+//     user.password,
+//     Number(config.bcrypt_salt_rounds),
+//   )
+//   return await User.create(user)
+// }
 
 const findUserById = async (userId: string) => {
   return await User.findById(userId)
@@ -100,19 +101,24 @@ const updateUserRoleIntoDB = async (id: string) => {
 
 //   return result;
 // };
-
-
-const getCurrentUserFromDB = async (userEmail: string, userRole: string) => {
-  const result = await User.findOne({ email: userEmail, role: userRole })
-    .select("-password")
-    .populate("following")
-    .populate("followers");
-
+const getCurrentUserFromDB  = async (userId: string) => {
+  const result = await User.findById(userId);
   return result;
 };
 
+
+
+// const getCurrentUserFromDB = async (userEmail: string, userRole: string) => {
+//   const result = await User.findOne({ email: userEmail, role: userRole })
+//     .select("-password")
+//     .populate("following")
+//     .populate("followers");
+
+//   return result;
+// };
+
 export const UserService = {
-  createUser,
+  // createUser,
   findUserById,
   getAllUsers,
   updateUserById,

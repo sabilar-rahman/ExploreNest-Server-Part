@@ -4,16 +4,16 @@ import { UserService } from './user.service'
 import catchAsync from '../utils/catchAsync'
 import sendResponse from '../utils/sendResponse'
 
-const createUser = catchAsync(async (req, res) => {
-  const result = await UserService.createUser(req.body)
+// const createUser = catchAsync(async (req, res) => {
+//   const result = await UserService.createUser(req.body)
 
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'User is created Successful',
-    data: result,
-  })
-})
+//   sendResponse(res, {
+//     statusCode: httpStatus.CREATED,
+//     success: true,
+//     message: 'User is created Successful',
+//     data: result,
+//   })
+// })
 
 const findUserById = catchAsync(async (req, res) => {
   const { id } = req.params
@@ -111,9 +111,11 @@ const updateUserRole = catchAsync(async (req, res) => {
 
 
 const getCurrentUser = catchAsync(async (req, res) => {
-  const { email, role } = req.user;
+  // const { email, role } = req.user;
+  const userId = req.user.userId;
 
-  const result = await UserService.getCurrentUserFromDB(email, role);
+  // const result = await UserService.getCurrentUserFromDB(email, role);
+  const result = await UserService.getCurrentUserFromDB(userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -125,9 +127,9 @@ const getCurrentUser = catchAsync(async (req, res) => {
 
 
 export const UserController = {
-  createUser,
-  findUserById,
+  // createUser,
   getAllUsers,
+  findUserById,
   updateUserById,
   deleteUserById,
   findUserByEmail,

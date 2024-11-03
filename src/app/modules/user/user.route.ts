@@ -1,7 +1,6 @@
 import express from "express";
 import { UserController } from "./user.controller";
 import {
-  createUserValidationSchema,
   updateUserValidationSchema,
 } from "./user.validation";
 import auth from "./../../middlewares/auth";
@@ -14,12 +13,12 @@ import { USER_ROLE } from "./user.utils";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  // auth(USER_ROLE.admin),
-  validateRequest(createUserValidationSchema),
-  UserController.createUser
-);
+// router.post(
+//   "/",
+//   // auth(USER_ROLE.admin),
+//   validateRequest(createUserValidationSchema),
+//   UserController.createUser
+// );
 
 router.get(
   "/",
@@ -28,6 +27,8 @@ router.get(
 );
 
 router.get("/:email", UserController.findUserByEmail);
+
+// get user by id,
 
 router.get(
   "/:id",
@@ -64,4 +65,6 @@ router.put("/update-role/:id", UserController.updateUserRole);
 
 
 router.get("/current-user",UserController.getCurrentUser);
+
+
 export const UserRoutes = router;

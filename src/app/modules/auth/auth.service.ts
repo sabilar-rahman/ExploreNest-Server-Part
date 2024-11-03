@@ -4,12 +4,13 @@ import config from '../../config'
 import bcryptJs from 'bcryptjs'
 
 import { TChangePassword, TLoginUser } from './auth.interface'
-import { createToken, verifyToken } from './auth.utils'
+// import { createToken, verifyToken } from './auth.utils'
 
 import { User } from '../user/user.model'
 import AppError from '../../errors/AppError'
 import { USER_ROLE } from '../user/user.utils'
 import { sendEmail } from '../utils/sendEmail'
+
 
 
 
@@ -38,6 +39,7 @@ const loginUser = async (payload: TLoginUser) => {
     const jwtPayload = {
       email: user.email,
       role: user.role,
+      userId: user._id.toString(), // convert ObjectId to string
     }
 
     const accessToken = createToken(
@@ -54,6 +56,13 @@ const loginUser = async (payload: TLoginUser) => {
     return {
       accessToken,
       refreshToken,
+      // added this user to the response
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     }
   } else {
     if (payload.password) {
@@ -67,9 +76,17 @@ const loginUser = async (payload: TLoginUser) => {
       }
     }
     const jwtPayload = {
+      _id: user._id,
+      name: user.name,  
       email: user.email,
       role: user.role,
-      _id: user._id,
+      img: user.img,
+      verified: user.verified,
+      followers: user.followers,
+      following: user.following,
+      
+
+
     }
 
     const accessToken = createToken(

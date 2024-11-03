@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
 export const createToken = (
-  jwtPayload: { email: string; role: string },
+  jwtPayload: { email: string; role: string,userId: string  },
   secret: string,
   expiresIn: string,
 ) => {
@@ -13,3 +13,13 @@ export const createToken = (
 export const verifyToken = (token: string, secret: string) => {
   return jwt.verify(token, secret) as JwtPayload
 }
+
+// import jwt from "jsonwebtoken";
+
+// export const createToekn = (
+//   jwtPayload: { email: string; role: string; userId: string },
+//   secret: string,
+//   expiresIn: string
+// ) => {
+//   return jwt.sign(jwtPayload, secret, { expiresIn });
+// };
