@@ -14,7 +14,7 @@ const app: Application = express();
 // Add CORS middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000","https://explore-nest-client.vercel.app"],
     credentials: true,
     // Allow cookies, authorization headers with the same origin, and credentials
   })
