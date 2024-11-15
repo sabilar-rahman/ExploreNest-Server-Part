@@ -1,24 +1,28 @@
-import { Router } from 'express'
+import express from "express";
+import auth from "../../middleware/auth";
+import { USER_ROLE } from "../user/user.constant";
+import validateRequest from "../../middleware/validateRequest";
+import { CommentValidations } from "./comment.validation";
+import { CommentControllers } from "./comment.controller";
 
-import { CommentController } from './comment.controller'
-import auth from '../../middlewares/auth'
-import { USER_ROLE } from '../user/user.utils'
-
-const router = Router()
+const router = express.Router();
 
 router.post(
-  '/create-comment',
-  auth(USER_ROLE.admin, USER_ROLE.user),
-  CommentController.createComment,
-)
-
-// get comment by post id
-router.get('/:id', CommentController.getCommentByPostId)
-
-// update comment
-router.put('/update/:id', CommentController.updateComment)
-
-// delete comment
-router.delete('/:id', CommentController.deleteComment)
-
-export const CommentRoute = router
+  "/create-comment",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  validateRequest(CommentValidations.createCommentValidationSchema),
+  CommentControllers.createComment,
+);
+router.get("/:id", CommentControllers.getCommentsForIndividualPost);
+router.put(
+  "/:id",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  validateRequest(CommentValidations.updateCommentValidationSchema),
+  CommentControllers.updateMyComment,
+);
+router.delete(
+  "/:id",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  CommentControllers.deleteMyComment,
+);
+export const CommentRoutes = router;

@@ -1,44 +1,69 @@
-// import { Types } from 'mongoose'
+// import mongoose from "mongoose";
 
 // export type TPayment = {
-//   userId: Types.ObjectId
-//   transactionId: string
-//   status: string
-//   amount: number
-// }
-
-// export type TPaymentData = {
-//   user: string;
+//   user: mongoose.Types.ObjectId;
+//   amount: number;
+//   paymentMethod?: string;
 //   status: "Active" | "Expired";
 //   transactionId: string;
-//   paymentUser: TPaymentUser | null;
+//   planTitle: string;
+//   planPrice: number;
+//   expiryDate: Date;
+//   createdAt?: Date;
+//   updatedAt?: Date;
 // };
-
 
 // export type TPaymentUser = {
 //   _id?: string;
 //   name: string;
 //   email: string;
 //   password: string;
+//   mobileNumber: string;
+//   gender: string;
 //   role: string;
 //   profileImage: string;
 //   status: string;
-//   verified: boolean;
+//   isVerified: boolean;
+//   birthDate: string;
+//   bio: string;
 //   address: string;
 //   followers: string[];
 //   following: string[];
+//   bookmarkPosts: string[];
 // };
 
+// export type TPaymentData = {
+//   user: string;
+//   title: string;
+//   price: string;
+//   expiry: string;
+//   transactionId: string;
+//   paymentUser: TPaymentUser | null;
+// };
 
+// 2nd ----------
 
-import { Types } from "mongoose";
-export interface TPaymentInfo {
-  user: Types.ObjectId;
-  transactionId: string
-  amount?: string
-  customerName?: string
-  customerEmail?: string
-  customerPhone?: string
-  customerAddress?: string
-  paidStatus?: "Un-Paid" | "Paid"
+export type TPayment= {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  userId: string;
+  amount : string;
+  transactionId : string;
+  address:string;
 }
+
+// 3rd -----------
+
+
+// import { Types } from "mongoose";
+// export interface TPaymentInfo {
+//   user: Types.ObjectId;
+//   transactionId: string
+//   amount?: string
+//   customerName?: string
+//   customerEmail?: string
+//   customerPhone?: string
+//   customerAddress?: string
+//   paidStatus?: "Un-Paid" | "Paid"
+// }

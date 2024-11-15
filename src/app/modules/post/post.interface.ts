@@ -1,32 +1,18 @@
-import { Types } from "mongoose";
-// import { TComment } from "../comment/comment.interface";
-
-// interface Voter {
-//   user: Types.ObjectId;
-//   vote: "upvote" | "downvote";
-// }
+import mongoose, { ObjectId } from "mongoose";
+import { POST_CATEGORY } from "./post.constant";
 
 export type TPost = {
- 
-  author: Types.ObjectId;
+  _id?: string;
   title: string;
+  location: string;
+  description: string;
   content?: string;
-  category: string;
-  image?: string;
-  // comments: [TComment];
-
+  author: ObjectId;
+  images?: string[];
+  category: keyof typeof POST_CATEGORY;
+  upvote: mongoose.Types.ObjectId[];
+  downvote: mongoose.Types.ObjectId[];
   commentCount: number;
-
-  // upVotes: number
-  // downVotes: number
-  
-
-  upvote: Types.ObjectId[]; // Array of user IDs that have upvoted the post
-  downvote: Types.ObjectId[]; // Array of user IDs that have downvoted the post
-  // voters: Voter[];
-  premium?: boolean;
-  // createdAt?: Date;
-  // updatedAt?: Date;
-
-  delete?: boolean;
+  isPremium: boolean;
+  isDelete: boolean;
 };

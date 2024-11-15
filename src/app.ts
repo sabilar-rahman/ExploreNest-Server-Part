@@ -1,40 +1,35 @@
-import express, { Application, Request, Response } from "express";
-import router from "./app/routes";
-import globalErrorHandler from "./app/middlewares/globalErrorhandelers";
-import notFound from "./app/middlewares/notFoundRoute";
-import cookieParser from "cookie-parser";
 import cors from "cors";
-// import path from "path";
+import express, { Application, Request, Response } from "express";
+import notFound from "./app/middleware/notFound";
+import globalErrorHandler from "./app/middleware/globalErrorHandler";
+import cookieParser from "cookie-parser";
+import router from "./app/routes";
 const app: Application = express();
 
-// app.use(express.static(path.join(__dirname, "../public")));
-
-// const app = express();
-
-// Add CORS middleware
+// parsers
+app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:3000","https://explore-nest-client.vercel.app"],
+    origin: ["http://localhost:3000", "https://explore-nest-client.vercel.app"],
     credentials: true,
-    // Allow cookies, authorization headers with the same origin, and credentials
   })
 );
 
-// Add body-parser middleware to handle JSON request bodies
-app.use(express.json()); // This will parse incoming JSON requests
-app.use(cookieParser());
-
-// Add EJS view engine
-// app.set("view engine", "ejs");
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello!, This is Explore Nest server.");
-});
-
-// application routes
+// module routes
 app.use("/api", router);
 
+// test routes
+app.get("/", (req: Request, res: Response) => {
+  const a = "Hello this is Explore nest server";
+
+  res.send(a);
+});
+
+// global error handler middleware
 app.use(globalErrorHandler);
+
+// not found route middleware
 app.use(notFound);
 
 export default app;

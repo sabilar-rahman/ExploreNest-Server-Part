@@ -1,24 +1,39 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 import { TPost } from "./post.interface";
+import { POST_CATEGORY } from "./post.constant";
 
-const postSchema: Schema<TPost> = new mongoose.Schema(
+const postSchema = new Schema<TPost>(
   {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
+    content: {
+      type: String,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
     author: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: "User",
       required: true,
     },
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    category: { type: String },
-    // image: String,
-
-    image: { type: [String], default: [] },
-
-    // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
-
-    // upVotes: { type: Number, default: 0 },
-    // downVotes: { type: Number, default: 0 },
+    images: {
+      type: [String],
+      default: [],
+    },
+    category: {
+      type: String,
+      enum: Object.values(POST_CATEGORY),
+      required: true,
+    },
     upvote: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -31,21 +46,22 @@ const postSchema: Schema<TPost> = new mongoose.Schema(
         ref: "User",
       },
     ],
-    // voters: [
-    //   {
-    //     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    //     vote: { type: String, enum: ["upvote", "downvote"] }, // stores 'upvote' or 'downvote'
-    //   },
-    // ],
-
-    commentCount: { type: Number, default: 0 }, // stores number of comments
-    premium: { type: Boolean, default: false },
-
-    delete: { type: Boolean, default: false },
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    isDelete: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const Post = mongoose.model<TPost>("Post", postSchema);
+export const Post = model<TPost>("Post", postSchema);

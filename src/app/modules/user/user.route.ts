@@ -1,70 +1,56 @@
-import express from "express";
-import { UserController } from "./user.controller";
-import {
-  updateUserValidationSchema,
-} from "./user.validation";
-import auth from "./../../middlewares/auth";
-
-// import { USER_ROLE } from "./user.utils";
-
-
-import validateRequest from "../../middlewares/ValidateRequest";
-import { USER_ROLE } from "./user.utils";
+import express, { NextFunction, Request, Response } from "express";
+import { UserControllers } from "./user.controller";
+import validateRequest from "../../middleware/validateRequest";
+import { userRegisterSchema, userUpdateSchema } from "./user.validation";
+import auth from "../../middleware/auth";
+import { USER_ROLE } from "./user.constant";
+import { multerUpload } from "../../config/multer.config";
 
 const router = express.Router();
 
-// router.post(
-//   "/",
-//   // auth(USER_ROLE.admin),
-//   validateRequest(createUserValidationSchema),
-//   UserController.createUser
-// );
+router.post(
+  "/create-user",
+  validateRequest(userRegisterSchema),
+  UserControllers.createUser,
+);
+router.get("/", UserControllers.getAllUsers);
 
 router.get(
-  "/",
-  // auth(USER_ROLE.admin),
-  UserController.getAllUsers
+  "/current-user",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  UserControllers.getCurrentUser,
+);
+router.put(
+  "/toggle-follower",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  UserControllers.toggleFollowUser,
+);
+router.put(
+  "/toggle-bookmark",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  UserControllers.bookmarkPost,
+);
+router.put(
+  "/update-user",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  multerUpload.single("profileImage"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.userData);
+    next();
+  },
+  validateRequest(userUpdateSchema),
+  UserControllers.updateUser,
 );
 
-router.get("/:email", UserController.findUserByEmail);
-
-// get user by id,
-
 router.get(
-  "/:id",
-  // auth(USER_ROLE.admin, USER_ROLE.user),
-  UserController.findUserById
+  "/get-single-user/:id",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
+  UserControllers.getSingleUser,
 );
 
 router.put(
-  "/:id",
-  // auth(USER_ROLE.admin),
-  validateRequest(updateUserValidationSchema),
-  UserController.updateUserById
+  "/status-toggle/:id",
+  auth(USER_ROLE.ADMIN),
+  UserControllers.toggleStatus,
 );
-
-router.delete(
-  "/:id",
-  // auth(USER_ROLE.admin),
-  UserController.deleteUserById
-);
-
-router.post(
-  "/:userId/follow",
-  auth(USER_ROLE.admin, USER_ROLE.user),
-  UserController.followUser
-);
-router.post(
-  "/:userId/unfollow",
-  auth(USER_ROLE.admin, USER_ROLE.user),
-  UserController.unFollowUser
-);
-
-router.put("/update-role/:id", UserController.updateUserRole);
-
-
-
-router.get("/current-user",UserController.getCurrentUser);
-
-
 export const UserRoutes = router;

@@ -1,49 +1,41 @@
-import { Router } from 'express'
-import { AuthControllers } from './auth.controller'
+import express from "express";
+import validateRequest from "../../middleware/validateRequest";
+import { AuthValidation } from "./auth.validation";
+import { AuthControllers } from "./auth.controller";
+import auth from "../../middleware/auth";
+import { USER_ROLE } from "../user/user.constant";
+const router = express.Router();
 
-import { AuthValidation } from './auth.validation'
-import validateRequest from '../../middlewares/ValidateRequest'
-
-const router = Router()
-
+router.post(
+  "/register-user",
+  validateRequest(AuthValidation.userRegisterValidationSchema),
+  AuthControllers.registerUser,
+);
+router.post(
+  "/login",
+  validateRequest(AuthValidation.userLoginValidationSchema),
+  AuthControllers.loginUser,
+);
 router.put(
-  '/change-password/:email',
+  "/change-password",
+  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
   validateRequest(AuthValidation.changePasswordValidationSchema),
   AuthControllers.changePassword,
-)
-
+);
 router.post(
-  '/login',
-  validateRequest(AuthValidation.loginValidationSchema),
-  AuthControllers.loginUser,
-)
-
-router.post(
-  '/refresh-token',
-  validateRequest(AuthValidation.refreshTokenValidationSchema),
-  AuthControllers.refreshToken,
-)
-router.post(
-  '/register',
-  validateRequest(AuthValidation.registerUserValidationSchema),
-  AuthControllers.registerUser,
-)
-
-// forget password
-router.post(
-  '/forget-password',
+  "/forget-password",
   validateRequest(AuthValidation.forgetPasswordValidationSchema),
   AuthControllers.forgetPassword,
-)
-// reset password
+);
 router.post(
-  '/reset-password',
+  "/reset-password",
   validateRequest(AuthValidation.resetPasswordValidationSchema),
   AuthControllers.resetPassword,
-)
+);
+router.post(
+  "/refresh-token",
+  validateRequest(AuthValidation.refreshTokenValidationSchema),
+  AuthControllers.refreshToken,
+);
 
-// last login
-router.put('/last-login/:userId', AuthControllers.updateLastLogin)
-
-export const AuthRoutes = router
-
+export const AuthRoutes = router;

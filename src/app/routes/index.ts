@@ -1,13 +1,10 @@
-import { Router } from "express";
-
-import { AuthRoutes } from "../modules/auth/auth.route";
-
-import { PostRoute } from "../modules/post/post.route";
-import { CommentRoute } from "../modules/comment/comment.route";
+import express from "express";
 import { UserRoutes } from "../modules/user/user.route";
-import { PaymentRoute } from "../modules/payment/payment.routes";
-
-const router = Router();
+import { AuthRoutes } from "../modules/auth/auth.route";
+import { PostRoutes } from "../modules/post/post.route";
+import { CommentRoutes } from "../modules/comment/comment.route";
+import { PaymentRoute } from "../modules/payment/payment.route";
+const router = express.Router();
 
 const moduleRoutes = [
   {
@@ -20,16 +17,17 @@ const moduleRoutes = [
   },
   {
     path: "/post",
-    route: PostRoute,
+    route: PostRoutes,
   },
   {
     path: "/comment",
-    route: CommentRoute,
+    route: CommentRoutes,
   },
   {
     path: "/payment",
     route: PaymentRoute,
   },
 ];
+
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
 export default router;
